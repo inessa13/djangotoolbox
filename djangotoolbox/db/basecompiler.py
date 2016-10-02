@@ -28,7 +28,13 @@ if django.VERSION >= (1, 5):
 else:
     from django.db.models.sql.constants import LOOKUP_SEP
 
-if django.VERSION >= (1, 6):
+if django.VERSION >= (1, 8):
+    def get_selected_fields(query):
+        if query.select:
+            return [col.field for col, __, __ in query.get_compiler('default').get_select()[0]]
+        else:
+            return query.model._meta.fields
+elif django.VERSION >= (1, 6):
     def get_selected_fields(query):
         if query.select:
             return [info.field for info in (query.select +
@@ -400,8 +406,8 @@ class NonrelCompiler(SQLCompiler):
         to this compiler. Called by QuerySet methods.
         """
 
+        fields = self.get_fields()
         if results is None:
-            fields = self.get_fields()
             try:
                 results = self.build_query(fields).fetch(
                     self.query.low_mark, self.query.high_mark)
@@ -493,7 +499,7 @@ class NonrelCompiler(SQLCompiler):
         if hasattr(self.query, 'is_empty') and self.query.is_empty():
             raise EmptyResultSet()
         if (len([a for a in self.query.alias_map if self.query.alias_refcount[a]]) > 1
-                or self.query.distinct or self.query.extra or self.query.having):
+                or self.query.distinct or self.query.extra or getattr(self.query, 'having', None)):
             raise DatabaseError("This query is not supported by the database.")
 
     def get_count(self, check_exists=False):

@@ -476,7 +476,7 @@ class NonrelDatabaseOperations(BaseDatabaseOperations):
                     for subvalue in value)
 
                 # "list" may be used for SetField.
-                if db_type in 'list':
+                if db_type in ('list',):
                     return list(value)
                 elif db_type == 'set':
                     # assert field_kind != 'ListField'
