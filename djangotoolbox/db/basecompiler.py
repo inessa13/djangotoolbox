@@ -552,7 +552,7 @@ class NonrelCompiler(SQLCompiler):
         # into `resolve_columns` because it wasn't selected.
         only_load = self.deferred_to_columns()
         if only_load:
-            db_table = self.query.model._meta.db_table
+            db_table = self.query.model
             only_load = dict((k, v) for k, v in only_load.items()
                              if v or k == db_table)
             if len(only_load.keys()) > 1:
@@ -560,7 +560,7 @@ class NonrelCompiler(SQLCompiler):
                                     "supported by non-relational DBs %s." %
                                     repr(only_load))
             fields = [f for f in fields if db_table in only_load and
-                      f.column in only_load[db_table]]
+                      f.attname in only_load[db_table]]
 
         query_model = self.query.model
         if query_model._meta.proxy:
